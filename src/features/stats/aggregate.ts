@@ -1,5 +1,5 @@
 import type { Level } from '../../domain/types';
-import { todayKey } from '../../lib/format';
+import { localDateKey, todayKey } from '../../lib/format';
 import type { PersistMeta, SessionResult } from '../../store/schema';
 
 export interface LevelStat {
@@ -40,12 +40,7 @@ export interface StatsSummary {
 const LEVELS: Level[] = [1, 2, 3, 4, 5, 6];
 
 function dateKey(d: Date): string {
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;
-  const day = d.getDate();
-  const mm = m < 10 ? `0${m}` : `${m}`;
-  const dd = day < 10 ? `0${day}` : `${day}`;
-  return `${y}-${mm}-${dd}`;
+  return localDateKey(d);
 }
 
 function addDays(base: Date, delta: number): Date {

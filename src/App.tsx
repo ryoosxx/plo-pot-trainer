@@ -1,12 +1,8 @@
 import { useState } from 'react';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { RouterProvider, createHashRouter } from 'react-router-dom';
 import { appRoutes } from './appRoutes';
 
 export default function App() {
-  const [router] = useState(() => {
-    const raw = import.meta.env.BASE_URL;
-    const basename = raw === '/' || raw === '' ? '/' : raw.replace(/\/$/, '');
-    return createBrowserRouter(appRoutes, { basename });
-  });
+  const [router] = useState(() => createHashRouter(appRoutes));
   return <RouterProvider router={router} />;
 }

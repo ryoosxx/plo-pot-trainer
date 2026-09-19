@@ -49,11 +49,9 @@ export const useStatsStore = create<StatsState>()(
           const error = sessions.error ?? meta.error;
           if (notice) {
             usePersistNoticeStore.getState().notify(notice, error);
-            writeStatsToLocalStorage([], DEFAULT_META);
-            return {
-              state: { sessions: [], meta: DEFAULT_META },
-              version: 1,
-            };
+          }
+          if (sessions.notice !== 'corrupt' && meta.notice !== 'corrupt') {
+            writeStatsToLocalStorage(sessions.value, meta.value);
           }
           return {
             state: { sessions: sessions.value, meta: meta.value },

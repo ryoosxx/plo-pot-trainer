@@ -17,6 +17,18 @@ export function formatPercent(ratio: number): string {
   return `${pct.toFixed(0)}%`;
 }
 
+/** 端末のローカル日付 YYYY-MM-DD。統計の「今日」判定に使う。 */
+export function localDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const day = date.getDate();
+  const mm = m < 10 ? `0${m}` : `${m}`;
+  const dd = day < 10 ? `0${day}` : `${day}`;
+  return `${y}-${mm}-${dd}`;
+}
+
 export function todayKey(iso: string): string {
-  return iso.slice(0, 10);
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso.slice(0, 10);
+  return localDateKey(parsed);
 }

@@ -57,13 +57,13 @@ describe('Phase 3 quiz modes', () => {
 
   it('ホームの副モード C/E と主CTAが活性化している', () => {
     renderAt('/');
-    expect(screen.getByTestId('home-max-raise')).toHaveAttribute(
-      'href',
+    expect(screen.getByTestId('home-max-raise').getAttribute('href')).toContain(
       '/quiz/max-raise',
     );
-    expect(screen.getByTestId('home-chips')).toHaveAttribute('href', '/quiz/chips');
-    expect(screen.getByTestId('home-sim')).toHaveAttribute('href', '/quiz/sim');
-    expect(screen.getByTestId('home-triple')).toHaveAttribute('href', '/quiz/triple');
+    expect(screen.getByTestId('home-chips').getAttribute('href')).toContain('/quiz/chips');
+    expect(screen.getByTestId('home-sim').getAttribute('href')).toContain('/quiz/sim');
+    expect(screen.getByTestId('home-triple').getAttribute('href')).toContain('/quiz/triple');
+    expect(screen.getByTestId('home-stats').getAttribute('href')).toContain('/stats');
     expect(screen.queryByTestId('home-pot-count')).not.toBeInTheDocument();
     expect(screen.queryByTestId('home-side-pot')).not.toBeInTheDocument();
   });

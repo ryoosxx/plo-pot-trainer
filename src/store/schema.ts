@@ -22,6 +22,15 @@ export type RatePreset =
   | 'custom';
 export type QuizMode = 'max-raise' | 'chips' | 'sim' | 'triple';
 
+export function isQuizMode(value: unknown): value is QuizMode {
+  return (
+    value === 'max-raise' ||
+    value === 'chips' ||
+    value === 'sim' ||
+    value === 'triple'
+  );
+}
+
 
 export interface Settings {
   schemaVersion: typeof SCHEMA_VERSION;
