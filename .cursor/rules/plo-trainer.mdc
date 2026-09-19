@@ -1,0 +1,41 @@
+---
+description: PLO Pot Trainer のプロジェクト規約（常時適用）
+globs:
+alwaysApply: true
+---
+
+# PLO Pot Trainer — 常時適用ルール
+
+作業前に `CLAUDE.md` と `docs/pot-limit-rules.md` を読むこと。詳細設計は `docs/spec.md`。
+
+## 絶対に守ること
+
+1. **ポットリミットの計算式は `src/domain/potLimit.ts` にのみ書く。**
+   コンポーネント・生成器・テストヘルパで数式を再実装しない。必ず `analyze()` を呼ぶ。
+2. 実装する式は `maxRaiseTo = h + P + 2 * (C - h)`。
+   - `P` = potBefore + 当該ストリートの全投入額（**コール前・自分の分も含む今の全額**）
+   - `C` = 当該ストリートの最大投入額、`h` = ヒーローの投入額
+   - 恒等式 `maxRaiseTo === 3 * C + (P - C - h)` をテストで固定する
+3. **`docs/pot-limit-rules.md` の検証ベクタ表は正本。** 実装を通すために表の数値を書き換えない。
+   表と実装が食い違ったら実装が誤り。表を変えたい場合は人間に確認を取る。
+4. 金額は常に整数（最小チップ単位）。浮動小数点で金額を扱わない。
+5. `src/domain/**` は純粋 TypeScript。React / DOM / localStorage / `Math.random()` を使わない
+   （乱数は `domain/generator/rng.ts` のシード付き RNG のみ）。
+6. `src/domain/**` を変更したら、同じコミットで Vitest を追加・更新する。
+7. 問題は合法なアクション列のシミュレーションで生成する。乱数で数字を直接でっち上げない。
+
+## 技術スタック（変更・追加は要相談）
+
+Vite / React 18 / TypeScript strict / Tailwind CSS v3 / zustand / react-router-dom / Vitest。
+UI ライブラリ（MUI・shadcn 等）とチャートライブラリは導入しない。バックエンド・外部 API・
+ネットワーク通信は一切行わない。永続化は localStorage のみ。
+
+## UI
+
+モバイルファースト（375px 基準）、ダークテーマ固定、独自数値キーパッド（OS キーボードを出さない）、
+タップ領域 44px 以上、正誤は「色＋アイコン＋文言」で表現。UI 文言は `src/lib/strings.ts` に集約（日本語）。
+
+## 完了の定義
+
+`npm run typecheck` / `npm run lint` / `npm run test` がすべて green。
+フェーズをまたいだ先行実装をしない（`CLAUDE.md` §9 の順序を守る）。
