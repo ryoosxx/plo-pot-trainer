@@ -1,42 +1,92 @@
 import { PageHeader } from '../../components/ui/PageHeader';
 import { StatBar } from '../../components/ui/StatBar';
-import { downloadText, sessionsToCsv } from '../../lib/csv';
-import { formatMs, formatPercent } from '../../lib/format';
+import { formatMs, formatPercent, formatShortDate } from '../../lib/format';
 import { strings } from '../../lib/strings';
+import type { QuizMode } from '../../store/schema';
 import { useStatsStore } from '../../store/stats';
-import { aggregateSessions } from './aggregate';
+import { aggregateSessions, totalsFromSummaries } from './aggregate';
+
+function modeLabel(mode: QuizMode): string {
+  if (mode === 'chips') return strings.stats.modeChips;
+  if (mode === 'sim') return strings.stats.modeSim;
+  if (mode === 'triple') return strings.stats.modeTriple;
+  return strings.stats.modeMaxRaise;
+}
 
 export function StatsPage() {
   const sessions = useStatsStore((s) => s.sessions);
+  const summaries = useStatsStore((s) => s.summaries);
   const meta = useStatsStore((s) => s.meta);
   const summary = aggregateSessions(sessions, meta, new Date());
+  const lifetime = totalsFromSummaries(summaries);
+  const totalQuestions =
+    lifetime.totalQuestions > 0 ? lifetime.totalQuestions : summary.totalQuestions;
+  const accuracy = lifetime.totalQuestions > 0 ? lifetime.accuracy : summary.accuracy;
+  const averageMs = lifetime.totalQuestions > 0 ? lifetime.averageMs : summary.averageMs;
   const maxDay = summary.last14Days.reduce((m, d) => (d.total > m ? d.total : m), 0);
+  const now = new Date();
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-white">
       <PageHeader title={strings.stats.title} />
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain space-y-6 px-4 py-4 pb-10">
-        {summary.totalQuestions === 0 ? (
+        {totalQuestions === 0 && summaries.length === 0 ? (
           <p className="text-muted">{strings.stats.empty}</p>
         ) : (
           <>
             <section className="grid grid-cols-3 gap-2">
               <div className="rounded-md border border-stroke p-3">
                 <p className="text-xs text-muted">{strings.stats.total}</p>
-                <p className="text-xl font-medium tabular-nums">{summary.totalQuestions}</p>
+                <p className="text-xl font-medium tabular-nums">{totalQuestions}</p>
               </div>
               <div className="rounded-md border border-stroke p-3">
                 <p className="text-xs text-muted">{strings.stats.accuracy}</p>
                 <p className="text-xl font-medium tabular-nums">
-                  {summary.accuracy === null ? '—' : formatPercent(summary.accuracy)}
+                  {accuracy === null ? '—' : formatPercent(accuracy)}
                 </p>
               </div>
               <div className="rounded-md border border-stroke p-3">
                 <p className="text-xs text-muted">{strings.stats.averageTime}</p>
                 <p className="text-xl font-medium tabular-nums">
-                  {summary.averageMs === null ? '—' : formatMs(summary.averageMs)}
+                  {averageMs === null ? '—' : formatMs(averageMs)}
                 </p>
               </div>
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-sm text-muted">{strings.stats.history}</h2>
+              {summaries.length === 0 ? (
+                <p className="text-muted text-sm">{strings.stats.empty}</p>
+              ) : (
+                <div className="space-y-2">
+                  {summaries.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-md border border-stroke px-3 py-2 space-y-0.5"
+                    >
+                      <div className="flex items-baseline justify-between gap-3 text-sm">
+                        <span>
+                          <span className="tabular-nums text-muted">
+                            {formatShortDate(item.endedAt, now)}
+                          </span>{' '}
+                          {modeLabel(item.mode)}
+                        </span>
+                        <span className="tabular-nums">
+                          {item.correct}/{item.total}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-xs tabular-nums text-muted">
+                        <span>
+                          {item.total === 0
+                            ? '—'
+                            : formatPercent(item.correct / item.total)}
+                        </span>
+                        <span>{formatMs(item.averageMs)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="space-y-2">
@@ -108,20 +158,6 @@ export function StatsPage() {
             </section>
           </>
         )}
-        <button
-          type="button"
-          data-testid="export-csv"
-          className="min-h-11 w-full rounded-md border border-stroke text-sm"
-          onClick={() =>
-            downloadText(
-              'plo-trainer-stats.csv',
-              sessionsToCsv(sessions),
-              'text/csv;charset=utf-8',
-            )
-          }
-        >
-          {strings.stats.exportCsv}
-        </button>
       </div>
     </div>
   );

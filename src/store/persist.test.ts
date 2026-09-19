@@ -3,6 +3,7 @@ import {
   decodeMeta,
   decodeSessions,
   decodeSettings,
+  decodeSummaries,
   noticeMessage,
   readSettingsFromLocalStorage,
 } from './persist';
@@ -131,6 +132,26 @@ describe('persist decode', () => {
       bestStreak: 8,
       currentStreak: 3,
     });
+  });
+
+  it('壊れたサマリー1件は捨てて残りは残す', () => {
+    const result = decodeSummaries(
+      JSON.stringify([
+        {
+          id: 'keep',
+          endedAt: '2026-09-08T00:01:00.000Z',
+          mode: 'max-raise',
+          total: 10,
+          correct: 8,
+          averageMs: 1500,
+        },
+        { id: 'bad' },
+      ]),
+    );
+    expect(result.notice).toBeNull();
+    expect(result.value).toHaveLength(1);
+    expect(result.value[0]?.id).toBe('keep');
+    expect(result.value[0]?.correct).toBe(8);
   });
 
   it('localStorage の破損は初期化理由を返す', () => {

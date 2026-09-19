@@ -1,6 +1,6 @@
 import type { Level } from '../../domain/types';
 import { localDateKey, todayKey } from '../../lib/format';
-import type { PersistMeta, SessionResult } from '../../store/schema';
+import type { PersistMeta, SessionResult, SessionSummary } from '../../store/schema';
 
 export interface LevelStat {
   level: Level;
@@ -151,4 +151,67 @@ export function applyStreak(
     }
   }
   return { ...meta, currentStreak: current, bestStreak: best };
+}
+
+export function summarizeSession(session: SessionResult): SessionSummary {
+  let correct = 0;
+  let time = 0;
+  for (const record of session.records) {
+    if (record.correct) correct += 1;
+    time += record.elapsedMs;
+  }
+  const total = session.records.length;
+  return {
+    id: session.id,
+    endedAt: session.endedAt,
+    mode: session.mode,
+    total,
+    correct,
+    averageMs: total === 0 ? 0 : time / total,
+  };
+}
+
+export function summariesFromSessions(
+  sessions: readonly SessionResult[],
+): SessionSummary[] {
+  const out: SessionSummary[] = [];
+  const seen = new Set<string>();
+  for (const session of sessions) {
+    if (!session.completed || session.records.length === 0) continue;
+    if (seen.has(session.id)) continue;
+    seen.add(session.id);
+    out.push(summarizeSession(session));
+  }
+  return out;
+}
+
+export function upsertSummary(
+  list: readonly SessionSummary[],
+  next: SessionSummary,
+  max: number,
+): SessionSummary[] {
+  const without = list.filter((item) => item.id !== next.id);
+  return [next, ...without].slice(0, max);
+}
+
+export function totalsFromSummaries(summaries: readonly SessionSummary[]): {
+  totalQuestions: number;
+  correctCount: number;
+  accuracy: number | null;
+  averageMs: number | null;
+} {
+  let totalQuestions = 0;
+  let correctCount = 0;
+  let timeSum = 0;
+  for (const item of summaries) {
+    totalQuestions += item.total;
+    correctCount += item.correct;
+    timeSum += item.averageMs * item.total;
+  }
+  return {
+    totalQuestions,
+    correctCount,
+    accuracy: totalQuestions === 0 ? null : correctCount / totalQuestions,
+    averageMs: totalQuestions === 0 ? null : timeSum / totalQuestions,
+  };
 }

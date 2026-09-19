@@ -10,7 +10,7 @@ function resetStores(): void {
   localStorage.clear();
   usePersistNoticeStore.setState({ message: null });
   useSettingsStore.setState({ ...DEFAULT_SETTINGS, questionCount: 10 });
-  useStatsStore.setState({ sessions: [], meta: DEFAULT_META });
+  useStatsStore.setState({ sessions: [], summaries: [], meta: DEFAULT_META });
 }
 
 function renderAt(path: string) {

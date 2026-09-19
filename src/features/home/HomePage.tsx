@@ -25,24 +25,15 @@ export function HomePage() {
     <div className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-y-contain bg-white px-4 py-6 gap-8">
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-medium tracking-tight">{strings.appTitle}</h1>
-        <nav className="flex items-center">
-          <NavLink
-            to="/stats"
-            data-testid="home-stats"
-            className="inline-flex min-h-11 items-center px-2 text-sm"
-          >
-            {strings.home.stats}
-          </NavLink>
-          <NavLink
-            to="/settings"
-            className="inline-flex min-h-11 items-center px-2 text-sm text-muted"
-          >
-            {strings.home.settings}
-          </NavLink>
-        </nav>
+        <NavLink
+          to="/settings"
+          className="inline-flex min-h-11 items-center px-2 text-sm text-muted"
+        >
+          {strings.home.settings}
+        </NavLink>
       </header>
 
-      <NavLink to="/stats" data-testid="home-stats-summary" className="block space-y-1 text-sm">
+      <section className="space-y-1 text-sm">
         {summary.todayTotal === 0 ? (
           <p className="text-muted">{strings.home.noStats}</p>
         ) : (
@@ -59,7 +50,7 @@ export function HomePage() {
             </p>
           </>
         )}
-      </NavLink>
+      </section>
 
       <NavLink
         to="/quiz/max-raise"
@@ -99,7 +90,7 @@ export function HomePage() {
       <div className="mt-auto grid grid-cols-2 gap-2">
         <NavLink
           to="/stats"
-          data-testid="home-stats-footer"
+          data-testid="home-stats"
           className="min-h-11 rounded-md border border-stroke flex items-center justify-center text-sm text-muted"
         >
           {strings.home.stats}

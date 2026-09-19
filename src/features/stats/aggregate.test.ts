@@ -1,5 +1,5 @@
 import { DEFAULT_META, DEFAULT_SETTINGS, type SessionResult } from '../../store/schema';
-import { aggregateSessions, applyStreak } from './aggregate';
+import { aggregateSessions, applyStreak, summarizeSession, summariesFromSessions, totalsFromSummaries } from './aggregate';
 
 function session(
   partial: Partial<SessionResult> & Pick<SessionResult, 'id' | 'completed' | 'records'>,
@@ -119,5 +119,77 @@ describe('applyStreak', () => {
     );
     expect(after.currentStreak).toBe(1);
     expect(after.bestStreak).toBe(3);
+  });
+});
+
+describe('session summaries', () => {
+  it('完了セッションを要約し、累計に足し上げる', () => {
+    const first = summarizeSession(
+      session({
+        id: 'a',
+        completed: true,
+        records: [
+          {
+            questionId: 'q1',
+            seed: 1,
+            level: 1,
+            mode: 'max-raise',
+            answer: 7,
+            input: 7,
+            correct: true,
+            elapsedMs: 2000,
+            timedOut: false,
+            mistake: null,
+            at: '2026-09-08T01:00:00.000Z',
+          },
+          {
+            questionId: 'q2',
+            seed: 2,
+            level: 1,
+            mode: 'max-raise',
+            answer: 7,
+            input: 1,
+            correct: false,
+            elapsedMs: 4000,
+            timedOut: false,
+            mistake: null,
+            at: '2026-09-08T01:01:00.000Z',
+          },
+        ],
+      }),
+    );
+    expect(first.total).toBe(2);
+    expect(first.correct).toBe(1);
+    expect(first.averageMs).toBe(3000);
+
+    const skipped = summariesFromSessions([
+      session({
+        id: 'skip',
+        completed: false,
+        records: [
+          {
+            questionId: 'q1',
+            seed: 1,
+            level: 1,
+            mode: 'max-raise',
+            answer: 7,
+            input: 7,
+            correct: true,
+            elapsedMs: 1000,
+            timedOut: false,
+            mistake: null,
+            at: '2026-09-08T01:00:00.000Z',
+          },
+        ],
+      }),
+    ]);
+    expect(skipped).toEqual([]);
+
+    const totals = totalsFromSummaries([
+      first,
+      { id: 'b', endedAt: '2026-09-09T00:00:00.000Z', mode: 'triple', total: 10, correct: 10, averageMs: 1000 },
+    ]);
+    expect(totals.totalQuestions).toBe(12);
+    expect(totals.correctCount).toBe(11);
   });
 });

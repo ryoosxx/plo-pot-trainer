@@ -5,6 +5,8 @@ export const SCHEMA_VERSION = 1 as const;
 export const SETTINGS_KEY = 'plo-trainer:settings:v1';
 export const SESSIONS_KEY = 'plo-trainer:sessions:v1';
 export const META_KEY = 'plo-trainer:meta:v1';
+export const SUMMARIES_KEY = 'plo-trainer:summaries:v1';
+export const MAX_SUMMARIES = 500;
 
 export type AnswerType = 'raiseTo' | 'addChips' | 'both';
 export type StraddleMode = 'none' | 'single' | 'double';
@@ -69,6 +71,15 @@ export interface AnswerRecord {
   timedOut: boolean;
   mistake: MistakeKind | null;
   at: string;
+}
+
+export interface SessionSummary {
+  id: string;
+  endedAt: string;
+  mode: QuizMode;
+  total: number;
+  correct: number;
+  averageMs: number;
 }
 
 export interface SessionResult {

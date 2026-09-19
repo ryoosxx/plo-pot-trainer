@@ -31,7 +31,7 @@ describe('stats store persist', () => {
   beforeEach(() => {
     localStorage.clear();
     usePersistNoticeStore.setState({ message: null });
-    useStatsStore.setState({ sessions: [], meta: DEFAULT_META });
+    useStatsStore.setState({ sessions: [], summaries: [], meta: DEFAULT_META });
   });
 
   it('直近 100 件まで保存し、完了セッションだけストリークを更新する', () => {
@@ -64,11 +64,17 @@ describe('stats store persist', () => {
 
     useStatsStore.getState().addSession(base('ok', true, true));
     expect(useStatsStore.getState().meta.currentStreak).toBe(1);
+    expect(useStatsStore.getState().summaries).toHaveLength(1);
+    expect(useStatsStore.getState().summaries[0]?.id).toBe('ok');
+
+    useStatsStore.getState().addSession(base('ok', true, true));
+    expect(useStatsStore.getState().summaries).toHaveLength(1);
 
     for (let i = 0; i < 101; i++) {
       useStatsStore.getState().addSession(base(`s${i}`, true, true));
     }
     expect(useStatsStore.getState().sessions).toHaveLength(100);
+    expect(useStatsStore.getState().summaries.length).toBeGreaterThan(100);
     const raw = localStorage.getItem(SESSIONS_KEY);
     const parsed: unknown = JSON.parse(raw ?? '[]');
     expect(Array.isArray(parsed)).toBe(true);
@@ -87,6 +93,7 @@ describe('stats store persist', () => {
     });
     useStatsStore.getState().resetStats();
     expect(useStatsStore.getState().sessions).toEqual([]);
+    expect(useStatsStore.getState().summaries).toEqual([]);
     expect(useStatsStore.getState().meta).toEqual(DEFAULT_META);
   });
 });

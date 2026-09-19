@@ -8,6 +8,7 @@ import {
   SCHEMA_VERSION,
   SESSIONS_KEY,
   SETTINGS_KEY,
+  SUMMARIES_KEY,
   isQuizMode,
   levelsFromTo,
   maxLevelOf,
@@ -16,6 +17,7 @@ import {
   type PersistMeta,
   type QuizMode,
   type SessionResult,
+  type SessionSummary,
   type Settings,
 } from './schema';
 
@@ -304,6 +306,47 @@ export function decodeSessions(raw: string | null): DecodeResult<SessionResult[]
   }
 }
 
+function decodeSummaryItem(value: unknown): SessionSummary | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.id !== 'string' || typeof value.endedAt !== 'string') return null;
+  if (!isQuizMode(value.mode)) return null;
+  if (!isChips(value.total) || !isChips(value.correct)) return null;
+  if (typeof value.averageMs !== 'number' || !Number.isFinite(value.averageMs)) return null;
+  if (value.correct > value.total) return null;
+  return {
+    id: value.id,
+    endedAt: value.endedAt,
+    mode: value.mode,
+    total: value.total,
+    correct: value.correct,
+    averageMs: value.averageMs,
+  };
+}
+
+export function decodeSummaries(raw: string | null): DecodeResult<SessionSummary[]> {
+  if (raw === null) {
+    return { value: [], notice: null, error: null };
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return {
+        value: [],
+        notice: 'schema',
+        error: new Error('summaries schema mismatch'),
+      };
+    }
+    const summaries: SessionSummary[] = [];
+    for (const item of parsed) {
+      const summary = decodeSummaryItem(item);
+      if (summary) summaries.push(summary);
+    }
+    return { value: summaries, notice: null, error: null };
+  } catch (error) {
+    return { value: [], notice: 'corrupt', error };
+  }
+}
+
 export function decodeMeta(raw: string | null): DecodeResult<PersistMeta> {
   if (raw === null) {
     return { value: DEFAULT_META, notice: null, error: null };
@@ -346,17 +389,34 @@ export function writeSettingsToLocalStorage(settings: Settings): void {
 export function readStatsFromLocalStorage(): DecodeResult<{
   sessions: SessionResult[];
   meta: PersistMeta;
+  summaries: SessionSummary[];
 }> {
   const sessions = decodeSessions(localStorage.getItem(SESSIONS_KEY));
   const meta = decodeMeta(localStorage.getItem(META_KEY));
+  const summaries = decodeSummaries(localStorage.getItem(SUMMARIES_KEY));
   if (sessions.notice) {
-    return { value: { sessions: [], meta: DEFAULT_META }, notice: sessions.notice, error: sessions.error };
+    return {
+      value: { sessions: [], meta: DEFAULT_META, summaries: [] },
+      notice: sessions.notice,
+      error: sessions.error,
+    };
   }
   if (meta.notice) {
-    return { value: { sessions: [], meta: DEFAULT_META }, notice: meta.notice, error: meta.error };
+    return {
+      value: { sessions: sessions.value, meta: DEFAULT_META, summaries: summaries.value },
+      notice: meta.notice,
+      error: meta.error,
+    };
+  }
+  if (summaries.notice === 'corrupt') {
+    return {
+      value: { sessions: sessions.value, meta: meta.value, summaries: [] },
+      notice: summaries.notice,
+      error: summaries.error,
+    };
   }
   return {
-    value: { sessions: sessions.value, meta: meta.value },
+    value: { sessions: sessions.value, meta: meta.value, summaries: summaries.value },
     notice: null,
     error: null,
   };
@@ -365,7 +425,9 @@ export function readStatsFromLocalStorage(): DecodeResult<{
 export function writeStatsToLocalStorage(
   sessions: SessionResult[],
   meta: PersistMeta,
+  summaries: SessionSummary[],
 ): void {
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
   localStorage.setItem(META_KEY, JSON.stringify(meta));
+  localStorage.setItem(SUMMARIES_KEY, JSON.stringify(summaries));
 }

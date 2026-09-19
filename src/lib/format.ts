@@ -32,3 +32,14 @@ export function todayKey(iso: string): string {
   if (Number.isNaN(parsed.getTime())) return iso.slice(0, 10);
   return localDateKey(parsed);
 }
+
+/** セッション一覧用。同じ年なら M/D、年が違えば YYYY/M/D。 */
+export function formatShortDate(iso: string, now: Date): string {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso.slice(0, 10);
+  const md = `${parsed.getMonth() + 1}/${parsed.getDate()}`;
+  if (parsed.getFullYear() !== now.getFullYear()) {
+    return `${parsed.getFullYear()}/${md}`;
+  }
+  return md;
+}

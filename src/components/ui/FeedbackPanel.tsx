@@ -22,7 +22,9 @@ export function FeedbackPanel({
           {correct ? strings.quiz.correct : strings.quiz.incorrect}
         </span>
       </p>
-      <p className="text-sm whitespace-pre-wrap tabular-nums text-muted">{body}</p>
+      <p className="max-h-28 overflow-y-auto overscroll-y-contain text-sm whitespace-pre-wrap tabular-nums text-muted">
+        {body}
+      </p>
       <button
         type="button"
         data-testid="next-question"
