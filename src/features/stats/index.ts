@@ -1,2 +1,8 @@
 export { StatsPage } from './StatsPage';
-export { aggregateSessions, applyStreak } from './aggregate';
+export {
+  aggregateSessions,
+  applyStreak,
+  summarizeSession,
+  summariesFromSessions,
+  totalsFromSummaries,
+} from './aggregate';

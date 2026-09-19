@@ -90,6 +90,7 @@ export function HomePage() {
       <div className="mt-auto grid grid-cols-2 gap-2">
         <NavLink
           to="/stats"
+          data-testid="home-stats"
           className="min-h-11 rounded-md border border-stroke flex items-center justify-center text-sm text-muted"
         >
           {strings.home.stats}

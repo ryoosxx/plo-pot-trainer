@@ -167,18 +167,20 @@ function TableScene({
   const visible = revealMode ? replayLog(scenario, revealed) : scenario;
   const acting = !revealMode || revealed >= scenario.actionLog.length;
   return (
-    <div className="space-y-2 -mx-4">
-      <PokerTable
-        seats={visible.seats}
-        contributions={visible.contributions}
-        heroSeat={scenario.heroSeat}
-        potBefore={visible.potBefore}
-        highlightActing={acting}
-      />
-      <div className="px-4">
+    <>
+      <div className="-mx-4 shrink-0">
+        <PokerTable
+          seats={visible.seats}
+          contributions={visible.contributions}
+          heroSeat={scenario.heroSeat}
+          potBefore={visible.potBefore}
+          highlightActing={acting}
+        />
+      </div>
+      <div className="min-h-0 flex-1">
         <ActionLog items={items} />
       </div>
-    </div>
+    </>
   );
 }
 
@@ -504,7 +506,7 @@ export function QuizPage() {
         </div>
       </header>
 
-      <div className="shrink-0 px-4 pt-1">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-1">
         {question.kind === 'sim' || question.kind === 'max-raise' ? (
           <TableScene
             scenario={question.scenario}
@@ -514,6 +516,9 @@ export function QuizPage() {
         ) : null}
         {question.kind === 'chips' ? <ChipBody question={question} /> : null}
         {question.kind === 'triple' ? <TripleBody question={question} /> : null}
+        {question.kind !== 'sim' && question.kind !== 'max-raise' ? (
+          <div className="min-h-0 flex-1" />
+        ) : null}
         {import.meta.env.MODE === 'test' ? (
           <span data-testid="quiz-answer" className="hidden">
             {expectedTestAnswer()}
@@ -527,9 +532,8 @@ export function QuizPage() {
               : 'amount'}
         </span>
       </div>
-      <div className="min-h-0 flex-1" />
 
-      <div className="shrink-0 px-4 pb-4 pt-1 space-y-2">
+      <div className="shrink-0 space-y-2 px-4 pt-1 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {phase === 'ask' && revealReady && askPrompt ? (
           <p className="font-medium text-center">{askPrompt}</p>
         ) : null}
